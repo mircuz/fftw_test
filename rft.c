@@ -18,6 +18,7 @@ int main(int argc, char **argv) {
 	comp = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * (N+2));
 	real = (double*) fftw_malloc(sizeof(double) * N*2);
 	pb = fftw_plan_dft_c2r_1d(24, comp, real, FFTW_MEASURE);
+	pf = fftw_plan_dft_r2c_1d(24, real, comp, FFTW_ESTIMATE);
 	int i=0;
 	for(i=0; i<5; i++){
 		comp[i][0]= 2*i+8;
@@ -46,7 +47,7 @@ int main(int argc, char **argv) {
 	}
 	
 
-	pf = fftw_plan_dft_r2c_1d(24, real, comp, FFTW_ESTIMATE);
+	
 	fftw_execute(pf);
 	for (i=0; i < 12; i++){
 		comp[i][0] = comp[i][0]/24;	comp[i][1] = comp[i][1]/24;

@@ -22,11 +22,11 @@ int main(int argc, char **argv) {
                                           &local_x, &local_x_start, &local_z, &local_z_start);
 	printf("[%d]\tlocal_x= %d\tlocal_x_start= %d\n\tlocal_z= %d\tlocal_z_start= %d\n\n", rank, local_x, local_x_start, local_z, local_z_start);
 
-	data = fftw_alloc_complex (alloc_local);
-	for(i=0; i < local_x; i++){
+	data = fftw_alloc_complex (alloc_local*5);
+	for(i=0; i < 6; i++){
 		for(k=0; k<N; k++){
-			data[i*N+k][0] = 2*(k+(i+local_x_start/2)*N);
-			data[i*N+k][1] = 2*(k+(i+local_x_start/2)*N)+1;
+			data[i*N+k][0] = 2*(k+(i/2)*N);
+			data[i*N+k][1] = 2*(k+(i/2)*N)+1;
 		}
 	}
 	
@@ -45,41 +45,31 @@ int main(int argc, char **argv) {
 		if (rank==1) printf("--------------------\n");
 	}*/
 
-	int count=0;
+	int count=1;
 	trasp = fftw_alloc_real (2*alloc_local);
 	transpose=fftw_mpi_plan_transpose(N/2+1, N,
                                   trasp, trasp,
                                   MPI_COMM_WORLD, FFTW_MPI_TRANSPOSED_OUT);
-	for (i=0; i < local_x; i++){
-		for(k=0; k<N;k++){
-			trasp[count]= data[i*N+k][0];	count++;
-			trasp[count]= data[i*N+k][1];	count++;
+	trasp[0]= local_x_start*N;
+	for (i=local_x_start; i < local_x_start+local_x; i++){
+		for(k=0; k<N*2;k++){
+			//trasp[count]= data[(i)*N+k][0];	count++;
+			//trasp[count]= data[(i)*N+k][1];	count++;
+			trasp[count]= trasp[count-1]+1; count++;
 		}
 	}
 	/*Print data to transpose*/
 	printf("\n\nData to double\n");
 	for (i=0; i < local_x; i++){
 		for(k=0; k<N;k++){
-			if (rank==0)printf("[%d] DOUBLE[%d]=%f\n", rank, i*N+k,trasp[i*N+k] );
+			if (rank==0)printf("[%d] DOUBLE[%d]=%f\n", rank, i*N+k,trasp[i*N+k]);
 		}
 		printf("-----------------------------\n");
 	}
-	MPI_Barrier(MPI_COMM_WORLD);
-	for (i=0; i < local_x; i++){
-		for(k=0; k<N;k++){
-			if (rank==1)printf("[%d] DOUBLE[%d]=%f\n", rank, i*N+k,trasp[i*N+k] );
-		}
-		printf("-----------------------------\n");
-	}
-	MPI_Barrier(MPI_COMM_WORLD);
-	for (i=0; i < local_x; i++){
-		for(k=0; k<N;k++){
-			if (rank==2)printf("[%d] DOUBLE[%d]=%f\n", rank, i*N+k,trasp[i*N+k] );
-		}
-		printf("-----------------------------\n");
-	}
+
 	/*Transpose*/
 	fftw_execute(transpose);
+	/*Print transposed array*/
 	MPI_Barrier(MPI_COMM_WORLD);
 	printf("\n\n\n\n\nTransposed\n");
 	for (i=0; i < local_z; i++){
@@ -87,21 +77,6 @@ int main(int argc, char **argv) {
 			if (rank==0)printf("[%d] trasp[%d]=%f\n", rank, i*(N/2+1)+k,trasp[i*(N/2+1)+k] );
 		}
 	}
-	MPI_Barrier(MPI_COMM_WORLD);
-	printf("\n\n\n\n\nTransposed\n");
-	for (i=0; i < local_z; i++){
-		for(k=0; k<N/2+1;k++){
-			if (rank==1)printf("[%d] trasp[%d]=%f\n", rank, i*(N/2+1)+k,trasp[i*(N/2+1)+k] );
-		}
-	}
-	MPI_Barrier(MPI_COMM_WORLD);
-	printf("\n\n\n\n\nTransposed\n");
-	for (i=0; i < local_z; i++){
-		for(k=0; k<N/2+1;k++){
-			if (rank==2)printf("[%d] trasp[%d]=%f\n", rank, i*(N/2+1)+k,trasp[i*(N/2+1)+k] );
-		}
-	}
-
 
 	MPI_Finalize();
 }
