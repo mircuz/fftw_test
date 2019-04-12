@@ -1,14 +1,25 @@
-all: compile link
+CC=mpicc
+CLIBS=-lfftw3_mpi -lfftw3 -lm
+CFLAGS=-O2 -fpic $(CLIBS)
 
-compile:
-	mpicc -O2 -fpic -c rft.c
-	mpicc -O2 -fpic -c transpose.c
-	mpicc -O2 -fpic -c 2drft.c
+all: rft transpose many_transpose 2drft
 
-link:
-	mpicc -o rft rft.o -lfftw3_mpi -lfftw3 -lm
-	mpicc -o 2drft 2drft.o -lfftw3_mpi -lfftw3 -lm
-	mpicc -o transpose transpose.o -lfftw3_mpi -lfftw3 -lm
+rft.o: rft.c
+transpose.o: transpose.c
+many_transpose: many_transpose.c
+2drft.o: 2drft.c
+
+rft: rft.o 
+	$(CC) rft.o $(CLIBS) -o rft
+	make remove_obj
+transpose: transpose.o
+	$(CC) -o transpose transpose.o $(CLIBS)
+	make remove_obj
+2drft: 2drft.o
+	$(CC) -o 2drft 2drft.o $(CLIBS)
+	make remove_obj
+many_transpose: many_transpose.o
+	$(CC) -o many_transpose many_transpose.o $(CLIBS)
 	make remove_obj
 
 remove_obj:
@@ -18,3 +29,4 @@ clean:
 	rm rft
 	rm transpose
 	rm 2drft
+	rm many_transpose
