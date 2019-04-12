@@ -11,16 +11,16 @@ many_transpose: many_transpose.c
 
 rft: rft.o 
 	$(CC) rft.o $(CLIBS) -o rft
-	make remove_obj
+	#make remove_obj
 transpose: transpose.o
 	$(CC) -o transpose transpose.o $(CLIBS)
-	make remove_obj
+	#make remove_obj
 2drft: 2drft.o
 	$(CC) -o 2drft 2drft.o $(CLIBS)
-	make remove_obj
+	#make remove_obj
 many_transpose: many_transpose.o
 	$(CC) -o many_transpose many_transpose.o $(CLIBS)
-	make remove_obj
+	#make remove_obj
 
 remove_obj:
 	rm *.o
